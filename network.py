@@ -102,7 +102,7 @@ class Network(object):
             activations.append(activation)
         # backward pass
         #calculate derivative of the the cost function in output layer
-        delta = self.cost_derivative(activations[-1], y, zs[-1])
+        delta = self.crossEntropyCost_derivative(activations[-1], y)
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         # Note that the variable l in the loop below is used a little
@@ -130,10 +130,12 @@ class Network(object):
                         for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
 
-    def cost_derivative(self, output_activations, y, z):
-        """Cost derivative"""
-        return ((output_activations-y)* sigmoid_prime(z))
-
+    def quadraticCost_derivative(self, output_activations, y, z):
+        """Cost derivative of quadratic cost function"""
+        return ((output_activations-y) * sigmoid_prime(z))
+    def crossEntropyCost_derivative(self, output_activations, y):
+        """Cost derivative of cross-entropy cost function"""
+        return (output_activations-y)
 def sigmoid(z):
     """The sigmoid function."""
     return 1.0/(1.0+np.exp(-z))
