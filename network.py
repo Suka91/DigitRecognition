@@ -76,10 +76,10 @@ class Network(object):
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             D_b = [db+dnb for db, dnb in zip(D_b, delta_nabla_b)]
             D_w = [dw+dnw for dw, dnw in zip(D_w, delta_nabla_w)]
-        self.weights = [w-(alpha/len(mini_batch))*dw
-                        for w, dw in zip(self.weights, D_w)]
-        self.biases = [b-(alpha/len(mini_batch))*db
-                       for b, db in zip(self.biases, D_b)]
+        self.weights = np.array([w-(alpha/len(mini_batch))*dw
+                                for w, dw in zip(self.weights, D_w)])
+        self.biases = np.array([b-(alpha/len(mini_batch))*db
+                                for b, db in zip(self.biases, D_b)])
 
     def backprop(self, x, y):
         """Return a tuple ``(nabla_b, nabla_w)`` representing the
@@ -101,8 +101,8 @@ class Network(object):
             #Save activations (later used for calculating gradient of cost function)
             activations.append(activation)
         # backward pass
-        #calculate error for output (last) layer
-        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
+        #calculate derivative of the the cost function in output layer
+        delta = self.cost_derivative(activations[-1], y, zs[-1])
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         # Note that the variable l in the loop below is used a little
@@ -130,9 +130,9 @@ class Network(object):
                         for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
 
-    def cost_derivative(self, output_activations, y):
-        """Return delta (error) for last layer"""
-        return (output_activations-y)
+    def cost_derivative(self, output_activations, y, z):
+        """Cost derivative"""
+        return ((output_activations-y)* sigmoid_prime(z))
 
 def sigmoid(z):
     """The sigmoid function."""
