@@ -1,9 +1,41 @@
 import random
 import numpy as np
+import matplotlib.pyplot as plt
+import mnist_loader
+from matplotlib import pyplot as plt
+
+class CrossEntropyCost(object):
+    
+    @staticmethod
+    def fn(a, y):
+        """Quadratic cost function where a is calculated output and
+        y is real output value"""
+        return 0.5*np.linalg.norm(a-y)**2
+
+    @staticmethod
+    def delta(z, a, y):
+        """Return the error delta from the output layer,
+        which is derivative of cost function"""
+        return (a-y) * sigmoid_prime(z)
+
+class CrossEntropyCost(object):
+
+    @staticmethod
+    def fn(a, y):
+        """Cross-entropy cost function where a is calculated output and
+        y is real output value"""
+        return np.sum(np.nan_to_num(-y*np.log(a)-(1-y)*np.log(1-a)))
+    
+    @staticmethod
+    def delta(z, a, y):
+        """Return the error delta from the output layer,
+        which is derivative of cost function
+        """
+        return (a-y)
 
 class Network(object):
 
-    def __init__(self, sizes):
+    def __init__(self, sizes, cost=CrossEntropyCost):
         """The list ``sizes`` contains the number of neurons in the
         respective layers of the network.  For example, if the list
         was [2, 3, 1] then it would be a three-layer network, with the
@@ -22,6 +54,8 @@ class Network(object):
         numerical reasons seen later in computation.''' 
         self.weights = np.array([np.random.randn(x, y)
                         for x, y in zip(sizes[1:],sizes[:-1])])
+        self.cost = cost
+        self.costs = []
 
     def feedforward(self, a):
         """Return the output of the network if ``a`` is input."""
@@ -30,7 +64,8 @@ class Network(object):
         return a
 
     def SGD(self, training_data, epochs, mini_batch_size, alpha,
-            test_data=None):
+            test_data=None,
+            track_cost=True):
         """Train the neural network using mini-batch stochastic
         gradient descent.  The ``training_data`` is a list of tuples
         ``(x, y)`` representing the training inputs and the desired
@@ -39,21 +74,26 @@ class Network(object):
         network will be evaluated against the test data after each
         epoch, and partial progress printed out.  This is useful for
         tracking progress, but slows things down substantially."""
-        if test_data is not None: n_test = len(test_data)
+        if test_data is not None:
+            n_test = len(test_data)
+            print("Epoch -1 :", self.evaluate(test_data), " / ", n_test)
+        
         n = len(training_data)
+
         for j in range(epochs):
             random.shuffle(training_data)
             mini_batches = [
                 training_data[k:k+mini_batch_size]
                 for k in range(0, n, mini_batch_size)]
-            if j == 0 and test_data is not None:
-                print("Epoch ", j-1, ":", self.evaluate(test_data), " / ", n_test)
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, alpha)
+            if track_cost is not None:
+                self.costs.append(self.calculateCost(training_data))
             if test_data is not None:
                 print("Epoch ", j, ":", self.evaluate(test_data), " / ", n_test)
             else:
                 print("Epoch", j, "complete")
+
 
     def update_mini_batch(self, mini_batch, alpha):
         """Update the network's weights and biases by applying
@@ -72,6 +112,7 @@ class Network(object):
         '''
         D_b = [np.zeros(b.shape) for b in self.biases]
         D_w = [np.zeros(w.shape) for w in self.weights]
+        
         for x, y in mini_batch:
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             D_b = [db+dnb for db, dnb in zip(D_b, delta_nabla_b)]
@@ -102,7 +143,7 @@ class Network(object):
             activations.append(activation)
         # backward pass
         #calculate derivative of the the cost function in output layer
-        delta = self.crossEntropyCost_derivative(activations[-1], y)
+        delta = (self.cost).delta(zs[-1], activations[-1], y)
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         # Note that the variable l in the loop below is used a little
@@ -130,12 +171,17 @@ class Network(object):
                         for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
 
-    def quadraticCost_derivative(self, output_activations, y, z):
-        """Cost derivative of quadratic cost function"""
-        return ((output_activations-y) * sigmoid_prime(z))
-    def crossEntropyCost_derivative(self, output_activations, y):
-        """Cost derivative of cross-entropy cost function"""
-        return (output_activations-y)
+    def calculateCost(self, input):
+        cost = 0.0
+        m = len(input)
+        for x,y in input:
+            a = self.feedforward(x)
+            cost += self.cost.fn(a,y)/m
+        return cost
+
+    def visualizeCostOverEpochs(self, cost, epochs):
+        plt.plot(cost,epochs)
+        plt.show()
 def sigmoid(z):
     """The sigmoid function."""
     return 1.0/(1.0+np.exp(-z))
