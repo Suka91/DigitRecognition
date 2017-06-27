@@ -1,11 +1,14 @@
 import numpy as np
 
 class Network:
-	def __init__(self, layers):
+	def __init__(self, layers, reduce_weights_deviation = True):
 		
 		self.num_layers = len(layers)
-		self.weights = np.array([ np.random.randn(y,x) for x,y in zip(layers[:-1],layers[1:])])
 		self.bias = np.array([ np.random.randn(x,1) for x in layers[1:]])
+		if(reduce_weights_deviation == True):
+			self.weights = np.array([ np.random.randn(y,x)/np.sqrt(x) for x,y in zip(layers[:-1],layers[1:])])
+		else:
+			self.weights = np.array([ np.random.randn(y,x) for x,y in zip(layers[:-1],layers[1:])])
 
 	def fit(self, train_data, validation_data, epochs = 1, alpha = 0.1, test_data = None, batch_size = None, lmbda = 0):
 
