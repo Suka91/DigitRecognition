@@ -1,16 +1,48 @@
 import numpy as np
 
+class Sigmoid(object):
+
+		@staticmethod
+		def fn(x):
+			return 1/(1+np.exp(-x))
+
+		@staticmethod
+		def prime(x):
+			return Sigmoid.fn(x)*(1-Sigmoid.fn(x))
+
+class Relu(object):
+
+		@staticmethod
+		def fn(x):
+			return x * (x > 0)
+
+		@staticmethod
+		def prime(x):
+			return 1 * (x > 0)
+
 class Network:
 	def __init__(self, layers, reduce_weights_deviation = True):
 		
 		self.num_layers = len(layers)
 		self.bias = np.array([ np.random.randn(x,1) for x in layers[1:]])
+		self.activation_function = None
 		if(reduce_weights_deviation == True):
 			self.weights = np.array([ np.random.randn(y,x)/np.sqrt(x) for x,y in zip(layers[:-1],layers[1:])])
 		else:
 			self.weights = np.array([ np.random.randn(y,x) for x,y in zip(layers[:-1],layers[1:])])
 
-	def fit(self, train_data, validation_data, epochs = 1, alpha = 0.1, test_data = None, batch_size = None, lmbda = 0):
+	def fit(self, train_data, validation_data, 
+			epochs = 1, 
+			alpha = 0.1, 
+			test_data = None, 
+			batch_size = None, 
+			lmbda = 0,
+			activation = "sigmoid"):
+
+		if(activation == "relu"):
+			self.activation_function = Relu
+		else:
+			self.activation_function = Sigmoid
 
 		print("Epoch: -1 of",epochs,"- Score: ",self.evaluate(validation_data)," / ",len(validation_data))
 		for i in range(epochs):
@@ -42,14 +74,14 @@ class Network:
 		for i in range(self.num_layers-1):
 			z = np.dot(self.weights[i],activations[i]) + self.bias[i]
 			zs.append(z)
-			activations.append(sigmoid(z))
+			activations.append(self.activation_function.fn(z))
 
 		cost_gradient_respect_a = self.cost_gradient_respect_a(activations[-1], y)
 		delta = cost_gradient_respect_a
 		bias_grad[-1] =  cost_gradient_respect_a
 		weights_grad[-1] =  np.dot(cost_gradient_respect_a,activations[-2].T)
 		for i in range(1,self.num_layers-1):
-			delta = np.dot(self.weights[-i].T, delta) * sigmoid_prime(zs[-i-1])
+			delta = np.dot(self.weights[-i].T, delta) * self.activation_function.prime(zs[-i-1])
 			bias_grad[-i-1] = delta
 			weights_grad[-i-1] = np.dot(delta, activations[-i-2].T) + 2*lmbda*self.weights[-i-1]
 		return bias_grad, weights_grad
@@ -59,7 +91,7 @@ class Network:
 		for x,y in validation_data:
 			activations = x
 			for i in range(self.num_layers-1):
-				activations = sigmoid(np.dot(self.weights[i], activations)+self.bias[i])
+				activations = self.activation_function.fn(np.dot(self.weights[i], activations)+self.bias[i])
 			output = np.argmax(activations)
 			if(isinstance(y, (np.ndarray))):
 				y = np.argmax(y)
@@ -69,8 +101,3 @@ class Network:
 
 	def cost_gradient_respect_a(self, a, y):
 		return a-y
-
-def sigmoid(x):
-	return 1/(1+np.exp(-x))
-def sigmoid_prime(x):
-	return sigmoid(x)*(1-sigmoid(x))
