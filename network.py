@@ -7,30 +7,30 @@ class Network:
 		self.weights = np.array([ np.random.randn(y,x) for x,y in zip(layers[:-1],layers[1:])])
 		self.bias = np.array([ np.random.randn(x,1) for x in layers[1:]])
 
-	def fit(self, train_data, validation_data, epochs = 1, alpha = 0.1, test_data = None, batch_size = None):
+	def fit(self, train_data, validation_data, epochs = 1, alpha = 0.1, test_data = None, batch_size = None, lmbda = 0):
 
 		print("Epoch: -1 of",epochs,"- Score: ",self.evaluate(validation_data)," / ",len(validation_data))
 		for i in range(epochs):
 			if batch_size is None:
-				self.update_network(train_data, alpha)
+				self.update_network(train_data, alpha, lmbda)
 			else:
 				batches = np.split(train_data, len(train_data)/batch_size)
 				for batch in batches:
-					self.update_network(batch, alpha)
+					self.update_network(batch, alpha, lmbda)
 			print("Epoch: ",i," of",epochs,"- Score: ",self.evaluate(validation_data)," / ",len(validation_data))
 
-	def update_network(self, train_data, alpha):
+	def update_network(self, train_data, alpha, lmbda):
 
 		weights_grad_total = [0 for x in range(self.num_layers-1)]
 		bias_grad_total = [0 for x in range(self.num_layers-1)]
 		for x,y in train_data:
-			bias_grad, weights_grad = self.backprop(x, y)
+			bias_grad, weights_grad = self.backprop(x, y, lmbda)
 			bias_grad_total = [ bgt + bg for bgt,bg in zip(bias_grad_total, bias_grad)]
 			weights_grad_total = [ wgt + wg for wgt,wg in zip(weights_grad_total, weights_grad)]
 		self.weights = [w - alpha/len(train_data)*wgt for w,wgt in zip(self.weights, weights_grad_total)]
 		self.bias = [b - alpha/len(train_data)*bgt for b,bgt in zip(self.bias, bias_grad_total)]
 
-	def backprop(self, x, y):
+	def backprop(self, x, y, lmbda):
 
 		zs = []
 		activations = [x]
@@ -48,9 +48,9 @@ class Network:
 		for i in range(1,self.num_layers-1):
 			delta = np.dot(self.weights[-i].T, delta) * sigmoid_prime(zs[-i-1])
 			bias_grad[-i-1] = delta
-			weights_grad[-i-1] = np.dot(delta, activations[-i-2].T)
+			weights_grad[-i-1] = np.dot(delta, activations[-i-2].T) + 2*lmbda*self.weights[-i-1]
 		return bias_grad, weights_grad
-		
+
 	def evaluate(self,validation_data):
 		score = 0
 		for x,y in validation_data:
