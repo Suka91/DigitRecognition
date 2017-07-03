@@ -160,9 +160,9 @@ class Network:
 			activations = self.activation_function.fn(np.dot(self.weights[i], activations)+self.bias[i])
 		return activations
 
-	def saveHistory(self,history_name):
+	def saveHistory(self,history_name,description):
 		file = open(history_name+"_description.txt",'w')
-		file.write(self.history_description)
+		file.write(description+"\n"+self.history_description)
 		file.close()
 
 		if(self.validation_cost is not None):

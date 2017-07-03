@@ -1,0 +1,16 @@
+1 784_30_10 epochs = 30, alpha = 3.0, batch_size = 10
+2 784_30_10 reduce_weights_deviation = False epochs = 30, alpha = 1.0, batch_size = 10
+3 784_30_10 epochs = 30, alpha = 1.0, batch_size = 10
+4 784_50_10 epochs = 30, alpha = 1.0, batch_size = 10
+5 784_50_30_10 epochs = 30, alpha = 1.0, batch_size = 10
+6 784_100_10 epochs = 30, alpha = 1.0, batch_size = 10
+7 784_100_10 epochs = 30, alpha = 1.0, batch_size = 10 lmbda=0.01
+8 784_150_10 epochs = 30, alpha = 1.0, batch_size = 10
+9 784_90_40_10 epochs = 60, alpha = 1.0, batch_size = 10
+10 784_100_10 epochs = 30, alpha = 1.0, batch_size = 10 lmbda=0.001
+11 784_100_10 epochs = 30, alpha = 1.0, batch_size = 10 lmbda=0.0001
+12 784_100_10 epochs = 30, alpha = 1.0, batch_size = 10 lmbda=0.0005
+13 784_100_10 epochs = 30, alpha = 1.0, batch_size = 10 lmbda=0.1
+14 784_150_10 epochs = 50, alpha = 1.0, batch_size = 10
+15 784_100_10 epochs = 30, alpha = 0.66, batch_size = 10
+16 784_100_10 epochs = 30, alpha = 0.33, batch_size = 10
